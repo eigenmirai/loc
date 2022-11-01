@@ -1,8 +1,8 @@
 // module `util`
 use json;
-use std::fs;
 use std::collections::HashMap;
 
+#[allow(non_upper_case_globals)]
 const json_file: &str = include_str!("lang.json");
 
 pub struct LocData {
