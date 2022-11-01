@@ -14,13 +14,12 @@ fn print_help(prog_name: &String) {
     println!("    -h, --help         Shows this message");
     println!("    -t, --time         Times execution and calculates files and lines per ms");
     println!("    -c, --colors       Colors rows of the result table");
-    println!("    -q, --quick        Quick execution, uses file extension instead of file type (use for big directories)");
     println!("        --ignore=a,b   Ignores files with the specified extension. (separated by commas)");
     println!("Due to the shitty way this program parses command line args,\n you can put them in any order you want and put any amount of - in between the short args, \nand put the target file whereever you want to.");
     println!("For example, `{} -c-t--q ~/project/src` does the same as `{} -ctq ~/project/src`", prog_name, prog_name);
 }
 
-fn process_file(file: &Path, map: &mut HashMap<String, LocData>, ignore: &Vec<String>, quick: &bool) -> bool {
+fn process_file(file: &Path, map: &mut HashMap<String, LocData>, ignore: &Vec<String>) -> bool {
     // get the file extension
     let extension: String = match file.extension() {
         Some(ext) => match ext.to_os_string().into_string() {
@@ -34,7 +33,7 @@ fn process_file(file: &Path, map: &mut HashMap<String, LocData>, ignore: &Vec<St
     }
 
     // get language from extension and check if language is already in the hashmap
-    let lang = resolve_extension(extension, quick);
+    let lang = extension;
     if !map.contains_key(&lang) {
         map.insert(lang.clone(), LocData::of(lang.clone()));
     }
@@ -65,7 +64,7 @@ fn process_file(file: &Path, map: &mut HashMap<String, LocData>, ignore: &Vec<St
 
 #[allow(unused_assignments)]
 #[allow(unused_variables)]
-fn scan_dir_recursive(path: &Path, ignore: &Vec<String>, quick :&bool) -> io::Result<HashMap<String, LocData>> {
+fn scan_dir_recursive(path: &Path, ignore: &Vec<String>) -> io::Result<HashMap<String, LocData>> {
     let mut data: HashMap<String, LocData> = HashMap::new();
     let mut skipped: u32 = 0;
 
@@ -73,7 +72,7 @@ fn scan_dir_recursive(path: &Path, ignore: &Vec<String>, quick :&bool) -> io::Re
         for entry in path.read_dir().expect("failed to read dir") {
             if let Ok(entry) = entry {
                 if entry.path().is_dir() {
-                    let subdir_data = match scan_dir_recursive(&entry.path(), ignore, quick) {
+                    let subdir_data = match scan_dir_recursive(&entry.path(), ignore) {
                         Ok(subdir_data) => subdir_data,
                         Err(_) => HashMap::new(),
                     };
@@ -99,13 +98,13 @@ fn scan_dir_recursive(path: &Path, ignore: &Vec<String>, quick :&bool) -> io::Re
                     skipped += 1;
                     continue;
                 }
-                if !process_file(&file, &mut data, ignore, quick) {
+                if !process_file(&file, &mut data, ignore) {
                     skipped += 1;
                 }
             }
         }
     } else {
-        if !process_file(&path, &mut data, ignore, quick){
+        if !process_file(&path, &mut data, ignore){
             skipped += 1;
         }
     }
@@ -134,8 +133,7 @@ fn main() -> () {
     let path = Path::new(&file_name);
     let start = SystemTime::now();
     
-    let quick: bool = args.has_flag_or_option('q', "quick");
-    let data = match scan_dir_recursive(&path, &ignored, &quick) {
+    let data = match scan_dir_recursive(&path, &ignored) {
         Ok(subdir_data) => subdir_data,
         Err(_) => panic!("sob"),
     };

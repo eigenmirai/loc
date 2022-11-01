@@ -1,9 +1,5 @@
 // module `util`
-use json;
 use std::collections::HashMap;
-
-#[allow(non_upper_case_globals)]
-const json_file: &str = include_str!("lang.json");
 
 pub struct LocData {
     pub lang: String,
@@ -83,20 +79,6 @@ pub fn parse_args(raw_args: Vec<String>) -> Args {
         flags,
         long_options,
         target
-    }
-}
-
-pub fn resolve_extension(ext: String, quick: &bool) -> String {
-    if *quick {
-        return ext;
-    }
-    let json = json::parse(json_file).unwrap();
-    let value = &json[ext];
-
-    if value.is_null() {
-        String::from("Unknown")
-    } else {
-        value.to_string()
     }
 }
 
