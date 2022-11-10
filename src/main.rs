@@ -51,9 +51,9 @@ fn process_file(file: &Path, map: &mut HashMap<String, LocData>, ignore: &Vec<St
     };
     obj.files += 1;
     for line in file_content.lines() {
-        if line.is_empty() {
+        if line.trim().is_empty() {
             obj.blank += 1;
-        } else if line.trim().starts_with("//") {
+        } else if line.trim().starts_with("//") || line.trim().starts_with("#") {
             obj.comment += 1;
         } else {
             obj.code += 1;
